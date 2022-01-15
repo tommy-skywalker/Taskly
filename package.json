@@ -1,0 +1,23 @@
+{
+  "name": "taskly",
+  "version": "0.1.0",
+  "description": "A modern task management application",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "task",
+    "management",
+    "productivity",
+    "todo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.0"
+  }
+}
+

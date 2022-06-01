@@ -1,55 +1,48 @@
 const express = require('express');
 const path = require('path');
+const config = require('./config');
+const taskService = require('./services/taskService');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-let tasks = [];
-
 // Get all tasks
 app.get('/api/tasks', (req, res) => {
-  res.json(tasks);
+  res.json(taskService.getAll());
 });
 
 // Create a new task
 app.post('/api/tasks', (req, res) => {
   const { title, description } = req.body;
-  const task = {
-    id: Date.now(),
-    title,
-    description: description || '',
-    completed: false,
-    createdAt: new Date().toISOString()
-  };
-  tasks.push(task);
+  if (!title) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+  const task = taskService.create(title, description);
   res.status(201).json(task);
 });
 
 // Update a task
 app.put('/api/tasks/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  const task = tasks.find(t => t.id === id);
+  const task = taskService.update(id, req.body);
   if (!task) {
     return res.status(404).json({ error: 'Task not found' });
   }
-  Object.assign(task, req.body);
   res.json(task);
 });
 
 // Delete a task
 app.delete('/api/tasks/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  const index = tasks.findIndex(t => t.id === id);
-  if (index === -1) {
+  const deleted = taskService.delete(id);
+  if (!deleted) {
     return res.status(404).json({ error: 'Task not found' });
   }
-  tasks.splice(index, 1);
   res.status(204).send();
 });
 
-app.listen(PORT, () => {
-  console.log(`Taskly server running on port ${PORT}`);
+app.listen(config.port, () => {
+  console.log(`Taskly server running on port ${config.port}`);
 });
 

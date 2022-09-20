@@ -17,6 +17,9 @@ interface Task {
   title: string;
   completed: boolean;
   createdAt: string;
+  priority?: 'low' | 'medium' | 'high';
+  dueDate?: string;
+  category?: string;
 }
 
 let tasks: Task[] = [];
@@ -25,7 +28,26 @@ let tasks: Task[] = [];
 
 // Get all tasks
 app.get('/api/tasks', (req: Request, res: Response) => {
-  res.json(tasks);
+  const { filter, search } = req.query;
+  let filteredTasks = [...tasks];
+  
+  // Apply filter
+  if (filter === 'active') {
+    filteredTasks = filteredTasks.filter(t => !t.completed);
+  } else if (filter === 'completed') {
+    filteredTasks = filteredTasks.filter(t => t.completed);
+  }
+  
+  // Apply search
+  if (search && typeof search === 'string') {
+    const searchLower = search.toLowerCase();
+    filteredTasks = filteredTasks.filter(t => 
+      t.title.toLowerCase().includes(searchLower) ||
+      (t.category && t.category.toLowerCase().includes(searchLower))
+    );
+  }
+  
+  res.json(filteredTasks);
 });
 
 // Get a single task
@@ -45,11 +67,16 @@ app.post('/api/tasks', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Task title is required' });
   }
 
+  const { priority, dueDate, category } = req.body;
+  
   const newTask: Task = {
     id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     title: title.trim(),
     completed: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    priority: priority || 'medium',
+    dueDate: dueDate || undefined,
+    category: category || undefined
   };
 
   tasks.push(newTask);
@@ -64,7 +91,7 @@ app.put('/api/tasks/:id', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'Task not found' });
   }
 
-  const { title, completed } = req.body;
+  const { title, completed, priority, dueDate, category } = req.body;
   
   if (title !== undefined) {
     if (typeof title !== 'string' || title.trim() === '') {
@@ -75,6 +102,18 @@ app.put('/api/tasks/:id', (req: Request, res: Response) => {
   
   if (completed !== undefined) {
     tasks[taskIndex].completed = Boolean(completed);
+  }
+  
+  if (priority !== undefined) {
+    tasks[taskIndex].priority = priority;
+  }
+  
+  if (dueDate !== undefined) {
+    tasks[taskIndex].dueDate = dueDate;
+  }
+  
+  if (category !== undefined) {
+    tasks[taskIndex].category = category;
   }
 
   res.json(tasks[taskIndex]);
@@ -90,6 +129,33 @@ app.delete('/api/tasks/:id', (req: Request, res: Response) => {
 
   tasks.splice(taskIndex, 1);
   res.status(204).send();
+});
+
+// Bulk delete tasks
+app.post('/api/tasks/bulk-delete', (req: Request, res: Response) => {
+  const { ids } = req.body;
+  
+  if (!Array.isArray(ids)) {
+    return res.status(400).json({ error: 'ids must be an array' });
+  }
+  
+  tasks = tasks.filter(t => !ids.includes(t.id));
+  res.json({ deleted: ids.length });
+});
+
+// Get task statistics
+app.get('/api/tasks/stats', (req: Request, res: Response) => {
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.completed).length;
+  const active = total - completed;
+  const highPriority = tasks.filter(t => t.priority === 'high' && !t.completed).length;
+  
+  res.json({
+    total,
+    completed,
+    active,
+    highPriority
+  });
 });
 
 // Serve frontend

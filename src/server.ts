@@ -20,6 +20,8 @@ interface Task {
   priority?: 'low' | 'medium' | 'high';
   dueDate?: string;
   category?: string;
+  description?: string;
+  updatedAt?: string;
 }
 
 let tasks: Task[] = [];
@@ -67,16 +69,18 @@ app.post('/api/tasks', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Task title is required' });
   }
 
-  const { priority, dueDate, category } = req.body;
+  const { priority, dueDate, category, description } = req.body;
   
   const newTask: Task = {
     id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     title: title.trim(),
     completed: false,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     priority: priority || 'medium',
     dueDate: dueDate || undefined,
-    category: category || undefined
+    category: category || undefined,
+    description: description || undefined
   };
 
   tasks.push(newTask);
@@ -91,29 +95,39 @@ app.put('/api/tasks/:id', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'Task not found' });
   }
 
-  const { title, completed, priority, dueDate, category } = req.body;
+  const { title, completed, priority, dueDate, category, description } = req.body;
   
   if (title !== undefined) {
     if (typeof title !== 'string' || title.trim() === '') {
       return res.status(400).json({ error: 'Task title cannot be empty' });
     }
     tasks[taskIndex].title = title.trim();
+    tasks[taskIndex].updatedAt = new Date().toISOString();
   }
   
   if (completed !== undefined) {
     tasks[taskIndex].completed = Boolean(completed);
+    tasks[taskIndex].updatedAt = new Date().toISOString();
   }
   
   if (priority !== undefined) {
     tasks[taskIndex].priority = priority;
+    tasks[taskIndex].updatedAt = new Date().toISOString();
   }
   
   if (dueDate !== undefined) {
     tasks[taskIndex].dueDate = dueDate;
+    tasks[taskIndex].updatedAt = new Date().toISOString();
   }
   
   if (category !== undefined) {
     tasks[taskIndex].category = category;
+    tasks[taskIndex].updatedAt = new Date().toISOString();
+  }
+  
+  if (description !== undefined) {
+    tasks[taskIndex].description = description;
+    tasks[taskIndex].updatedAt = new Date().toISOString();
   }
 
   res.json(tasks[taskIndex]);
@@ -149,13 +163,49 @@ app.get('/api/tasks/stats', (req: Request, res: Response) => {
   const completed = tasks.filter(t => t.completed).length;
   const active = total - completed;
   const highPriority = tasks.filter(t => t.priority === 'high' && !t.completed).length;
+  const overdue = tasks.filter(t => 
+    t.dueDate && 
+    new Date(t.dueDate) < new Date() && 
+    !t.completed
+  ).length;
   
   res.json({
     total,
     completed,
     active,
-    highPriority
+    highPriority,
+    overdue
   });
+});
+
+// Export tasks
+app.get('/api/tasks/export', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', 'attachment; filename=tasks.json');
+  res.json(tasks);
+});
+
+// Import tasks
+app.post('/api/tasks/import', (req: Request, res: Response) => {
+  const { tasks: importedTasks } = req.body;
+  
+  if (!Array.isArray(importedTasks)) {
+    return res.status(400).json({ error: 'Invalid tasks format' });
+  }
+  
+  // Validate and merge tasks
+  importedTasks.forEach((task: any) => {
+    if (task.id && task.title) {
+      const existingIndex = tasks.findIndex(t => t.id === task.id);
+      if (existingIndex >= 0) {
+        tasks[existingIndex] = { ...tasks[existingIndex], ...task };
+      } else {
+        tasks.push(task);
+      }
+    }
+  });
+  
+  res.json({ imported: importedTasks.length, total: tasks.length });
 });
 
 // Serve frontend

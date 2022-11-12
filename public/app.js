@@ -192,6 +192,12 @@ function renderStats(stats) {
       <span class="stat-value">${stats.highPriority}</span>
       <span class="stat-label">High Priority</span>
     </div>
+    ${stats.overdue ? `
+    <div class="stat-item">
+      <span class="stat-value" style="color: #e74c3c;">${stats.overdue}</span>
+      <span class="stat-label">Overdue</span>
+    </div>
+    ` : ''}
   `;
 }
 
@@ -280,4 +286,85 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Export/Import functions
+async function exportTasks() {
+  try {
+    const response = await fetch(`${API_URL}/export`);
+    const tasks = await response.json();
+    const dataStr = JSON.stringify(tasks, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `taskly-export-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error exporting tasks:', error);
+    alert('Failed to export tasks. Please try again.');
+  }
+}
+
+async function importTasks(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    
+    if (!Array.isArray(data)) {
+      alert('Invalid file format. Expected an array of tasks.');
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks: data }),
+    });
+
+    if (!response.ok) throw new Error('Import failed');
+    
+    const result = await response.json();
+    alert(`Successfully imported ${result.imported} tasks. Total tasks: ${result.total}`);
+    loadTasks();
+    loadStats();
+  } catch (error) {
+    console.error('Error importing tasks:', error);
+    alert('Failed to import tasks. Please check the file format.');
+  }
+  
+  event.target.value = '';
+}
+
+async function clearCompleted() {
+  if (!confirm('Are you sure you want to delete all completed tasks?')) return;
+  
+  try {
+    const tasks = await fetchTasks();
+    const completedIds = tasks.filter(t => t.completed).map(t => t.id);
+    
+    if (completedIds.length === 0) {
+      alert('No completed tasks to delete.');
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/bulk-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: completedIds }),
+    });
+
+    if (!response.ok) throw new Error('Failed to delete tasks');
+    
+    alert(`Deleted ${completedIds.length} completed task(s).`);
+    loadTasks();
+    loadStats();
+  } catch (error) {
+    console.error('Error clearing completed tasks:', error);
+    alert('Failed to clear completed tasks. Please try again.');
+  }
 }

@@ -231,7 +231,7 @@ function renderTaskItem(task) {
   const priorityClass = `priority-${task.priority || 'medium'}`;
   
   return `
-    <div class="task-item ${task.completed ? 'completed' : ''}">
+    <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
       <input 
         type="checkbox" 
         ${task.completed ? 'checked' : ''} 
@@ -240,8 +240,9 @@ function renderTaskItem(task) {
       <div style="flex: 1;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span class="priority-badge ${priorityClass}">${(task.priority || 'medium').toUpperCase()}</span>
-          <span>${escapeHtml(task.title)}</span>
+          <span class="task-title" onclick="editTaskTitle('${task.id}')" style="cursor: pointer; flex: 1;">${escapeHtml(task.title)}</span>
         </div>
+        ${task.description ? `<div style="font-size: 12px; color: #666; margin-top: 4px; font-style: italic;">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
           ${task.category ? `<span class="category-tag">${escapeHtml(task.category)}</span>` : ''}
           ${task.dueDate ? `<span class="due-date ${isOverdue ? 'overdue' : ''}">📅 ${formatDate(task.dueDate)}${isOverdue ? ' (Overdue)' : ''}</span>` : ''}
@@ -280,6 +281,46 @@ async function removeTask(id) {
     console.error('Error deleting task:', error);
     alert('Failed to delete task. Please try again.');
   }
+}
+
+async function editTaskTitle(id) {
+  const taskItem = document.querySelector(`[data-task-id="${id}"]`);
+  const titleSpan = taskItem.querySelector('.task-title');
+  const currentTitle = titleSpan.textContent;
+  
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentTitle;
+  input.style.cssText = 'flex: 1; padding: 4px; border: 2px solid #667eea; border-radius: 4px; font-size: inherit;';
+  
+  titleSpan.replaceWith(input);
+  input.focus();
+  input.select();
+  
+  const finishEdit = async () => {
+    const newTitle = input.value.trim();
+    if (newTitle && newTitle !== currentTitle) {
+      try {
+        await updateTask(id, { title: newTitle });
+        loadTasks();
+      } catch (error) {
+        console.error('Error updating task:', error);
+        alert('Failed to update task title.');
+      }
+    } else {
+      loadTasks();
+    }
+  };
+  
+  input.addEventListener('blur', finishEdit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      finishEdit();
+    } else if (e.key === 'Escape') {
+      loadTasks();
+    }
+  });
 }
 
 function escapeHtml(text) {

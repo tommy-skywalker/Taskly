@@ -213,9 +213,19 @@ app.get('/', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+// Health check endpoint
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    tasksCount: tasks.length 
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Taskly server running on http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`API endpoints available at http://localhost:${PORT}/api`);
 });
 

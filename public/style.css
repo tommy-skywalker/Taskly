@@ -125,6 +125,38 @@ button:active {
   background: #c0392b;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button,
+.action-buttons label {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  color: white;
+}
+
+.action-buttons button:hover,
+.action-buttons label:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.task-title {
+  user-select: none;
+}
+
+.task-title:hover {
+  text-decoration: underline;
+}
+
 .empty-state {
   text-align: center;
   padding: 40px;

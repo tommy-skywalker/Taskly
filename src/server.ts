@@ -30,7 +30,7 @@ let tasks: Task[] = [];
 
 // Get all tasks
 app.get('/api/tasks', (req: Request, res: Response) => {
-  const { filter, search } = req.query;
+  const { filter, search, sort } = req.query;
   let filteredTasks = [...tasks];
   
   // Apply filter
@@ -45,8 +45,26 @@ app.get('/api/tasks', (req: Request, res: Response) => {
     const searchLower = search.toLowerCase();
     filteredTasks = filteredTasks.filter(t => 
       t.title.toLowerCase().includes(searchLower) ||
-      (t.category && t.category.toLowerCase().includes(searchLower))
+      (t.category && t.category.toLowerCase().includes(searchLower)) ||
+      (t.description && t.description.toLowerCase().includes(searchLower))
     );
+  }
+  
+  // Apply sorting
+  if (sort === 'priority') {
+    const priorityOrder = { high: 3, medium: 2, low: 1 };
+    filteredTasks.sort((a, b) => {
+      const aPriority = priorityOrder[a.priority || 'medium'] || 2;
+      const bPriority = priorityOrder[b.priority || 'medium'] || 2;
+      return bPriority - aPriority;
+    });
+  } else if (sort === 'dueDate') {
+    filteredTasks.sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
   }
   
   res.json(filteredTasks);

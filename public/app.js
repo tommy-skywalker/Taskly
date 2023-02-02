@@ -3,6 +3,7 @@ const API_URL = window.location.origin + '/api/tasks';
 // State
 let currentFilter = 'all';
 let currentSearch = '';
+let currentSort = '';
 
 // DOM elements
 const taskForm = document.getElementById('taskForm');
@@ -15,6 +16,7 @@ const themeToggle = document.getElementById('themeToggle');
 const prioritySelect = document.getElementById('prioritySelect');
 const dueDateInput = document.getElementById('dueDateInput');
 const categoryInput = document.getElementById('categoryInput');
+const sortSelect = document.getElementById('sortSelect');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,6 +42,12 @@ function setupEventListeners() {
   // Search
   searchInput.addEventListener('input', (e) => {
     currentSearch = e.target.value;
+    loadTasks();
+  });
+
+  // Sort
+  sortSelect.addEventListener('change', (e) => {
+    currentSort = e.target.value;
     loadTasks();
   });
 
@@ -90,6 +98,7 @@ async function fetchTasks() {
   const params = new URLSearchParams();
   if (currentFilter !== 'all') params.append('filter', currentFilter);
   if (currentSearch) params.append('search', currentSearch);
+  if (currentSort) params.append('sort', currentSort);
   
   const url = `${API_URL}${params.toString() ? '?' + params.toString() : ''}`;
   const response = await fetch(url);
@@ -371,7 +380,7 @@ async function importTasks(event) {
     
     const result = await response.json();
     alert(`Successfully imported ${result.imported} tasks. Total tasks: ${result.total}`);
-    loadTasks();
+      loadTasks();
     loadStats();
   } catch (error) {
     console.error('Error importing tasks:', error);
@@ -402,7 +411,7 @@ async function clearCompleted() {
     if (!response.ok) throw new Error('Failed to delete tasks');
     
     alert(`Deleted ${completedIds.length} completed task(s).`);
-    loadTasks();
+      loadTasks();
     loadStats();
   } catch (error) {
     console.error('Error clearing completed tasks:', error);

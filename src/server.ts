@@ -65,6 +65,10 @@ app.get('/api/tasks', (req: Request, res: Response) => {
       if (!b.dueDate) return -1;
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
+  } else if (sort === 'created') {
+    filteredTasks.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }
   
   res.json(filteredTasks);

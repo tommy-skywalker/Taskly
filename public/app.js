@@ -223,16 +223,18 @@ function renderTasks(tasks) {
     return;
   }
 
-  taskList.innerHTML = tasks
-    .sort((a, b) => {
+  // If no server-side sort is applied, use default client-side sort
+  if (!currentSort) {
+    tasks.sort((a, b) => {
       // Sort by priority first (high > medium > low), then by date
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       const priorityDiff = (priorityOrder[b.priority] || 2) - (priorityOrder[a.priority] || 2);
       if (priorityDiff !== 0) return priorityDiff;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    })
-    .map(task => renderTaskItem(task))
-    .join('');
+    });
+  }
+  
+  taskList.innerHTML = tasks.map(task => renderTaskItem(task)).join('');
 }
 
 function renderTaskItem(task) {

@@ -9,7 +9,16 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Request logging middleware (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req: Request, res: Response, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
+}
 
 // In-memory storage (in production, use a database)
 interface Task {

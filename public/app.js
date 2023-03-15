@@ -64,6 +64,11 @@ function setupEventListeners() {
 // Keyboard shortcuts
 function setupKeyboardShortcuts() {
   document.addEventListener('keydown', (e) => {
+    // Don't trigger shortcuts when typing in inputs
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+      return;
+    }
+    
     // Focus search with Ctrl/Cmd + K
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
@@ -73,6 +78,11 @@ function setupKeyboardShortcuts() {
     if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
       e.preventDefault();
       taskInput.focus();
+    }
+    // Toggle theme with Ctrl/Cmd + T
+    if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+      e.preventDefault();
+      toggleTheme();
     }
   });
 }

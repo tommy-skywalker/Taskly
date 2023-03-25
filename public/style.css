@@ -369,6 +369,25 @@ body.dark-mode select {
   border-color: #444;
 }
 
+body.dark-mode .stat-label {
+  color: #aaa;
+}
+
+body.dark-mode .category-tag {
+  background: #3d3d3d;
+  color: #e0e0e0;
+}
+
+body.dark-mode .action-buttons button,
+body.dark-mode .action-buttons label {
+  opacity: 0.95;
+}
+
+body.dark-mode .action-buttons button:hover,
+body.dark-mode .action-buttons label:hover {
+  opacity: 1;
+}
+
 @media (max-width: 600px) {
   .container {
     padding: 20px;

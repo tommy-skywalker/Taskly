@@ -100,7 +100,22 @@ app.post('/api/tasks', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Task title is required' });
   }
 
+  // Validate title length
+  if (title.trim().length > 200) {
+    return res.status(400).json({ error: 'Task title must be 200 characters or less' });
+  }
+
   const { priority, dueDate, category, description } = req.body;
+  
+  // Validate priority
+  if (priority && !['low', 'medium', 'high'].includes(priority)) {
+    return res.status(400).json({ error: 'Invalid priority. Must be low, medium, or high' });
+  }
+  
+  // Validate due date format if provided
+  if (dueDate && isNaN(new Date(dueDate).getTime())) {
+    return res.status(400).json({ error: 'Invalid due date format' });
+  }
   
   const newTask: Task = {
     id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

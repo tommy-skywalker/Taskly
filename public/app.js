@@ -151,6 +151,11 @@ async function deleteTask(id) {
 async function handleTaskCreation() {
   const title = taskInput.value.trim();
   if (!title) return;
+  
+  if (title.length > 200) {
+    alert('Task title must be 200 characters or less.');
+    return;
+  }
 
   const taskData = {
     title,
@@ -169,7 +174,8 @@ async function handleTaskCreation() {
     loadStats();
   } catch (error) {
     console.error('Error creating task:', error);
-    alert('Failed to create task. Please try again.');
+    const errorMessage = error.message || 'Failed to create task. Please try again.';
+    alert(errorMessage);
   }
 }
 

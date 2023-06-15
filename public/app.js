@@ -80,7 +80,9 @@ function renderTasks(tasks) {
     return;
   }
 
-  taskList.innerHTML = tasks.map(task => `
+  taskList.innerHTML = tasks
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .map(task => `
     <div class="task-item ${task.completed ? 'completed' : ''}">
       <input 
         type="checkbox" 

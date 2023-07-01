@@ -7,8 +7,10 @@ A modern task management application built with TypeScript backend and vanilla J
 - ✅ Create, read, update, and delete tasks
 - ✅ Mark tasks as complete/incomplete
 - ✅ Clean and modern UI
+- ✅ Responsive design for mobile devices
 - ✅ RESTful API backend
 - ✅ TypeScript for type safety
+- ✅ Tasks sorted by creation date
 
 ## Tech Stack
 

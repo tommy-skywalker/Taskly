@@ -67,6 +67,9 @@ app.put('/api/tasks/:id', (req: Request, res: Response) => {
   const { title, completed } = req.body;
   
   if (title !== undefined) {
+    if (typeof title !== 'string' || title.trim() === '') {
+      return res.status(400).json({ error: 'Task title cannot be empty' });
+    }
     tasks[taskIndex].title = title.trim();
   }
   
